@@ -23,6 +23,13 @@ function M.Compose(transforms)
 end
 
 
+--No change
+function M.NoChange()
+   return function(img)
+      return img
+   end
+end
+
 -- Normalize image
 function M.Normalize(meanstd)
    return function(img)

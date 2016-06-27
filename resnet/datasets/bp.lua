@@ -104,21 +104,34 @@ local pca = {
 
 function bpDataset:augment()
    if self.split == 'train' then
-      return t.Compose{
+      local randNo = math.random(5)
+      if randNo == 1 then
+         return t.Compose{
+         t.Translation(10)}
+      elseif randNo == 2 then 
+         return t.Compose{
+         t.HorizontalFlip(1)}
+      elseif randNo == 3 then
+         return t.Compose{
+         t.Rotation(1)}
+      elseif randNo == 4 then
+         return t.Compose{
+         t.Rotation(-1)}
+      else 
+            return t.Compose{
          -- t.RandomSizedCrop(224),
          -- t.ColorJitter({brightness = 0.4,contrast = 0.4,saturation = 0.4,}),
          -- t.Lighting(0.1, pca.eigval, pca.eigvec),
-         t.HorizontalFlip(0.5),
-         t.Rotation(1),
-         t.Rotation(-1),
-         t.Translation(10)
-      }
+         t.NoChange()}
+      end
+
    elseif self.split == 'val' then
       local Crop = self.opt.tenCrop and t.TenCrop or t.CenterCrop
       return t.Compose{
          -- t.Scale(256),
          -- t.ColorNormalize(meanstd),
          -- Crop(224),
+         t.NoChange()
       }
    else
       error('invalid split: ' .. self.split)

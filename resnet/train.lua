@@ -41,7 +41,7 @@ function Trainer:train(epoch, dataloader)
    end
 
    local trainSize = dataloader:size()
-   local top1Sum, top5Sum, lossSum = 0.0, 0.0, 0.0
+   local top1Sum,  lossSum = 0.0, 0.0
    local N = 0
 
    print('=> Training epoch # ' .. epoch)
@@ -62,14 +62,14 @@ function Trainer:train(epoch, dataloader)
 
       optim.sgd(feval, self.params, self.optimState)
 
-      local top1, top5 = self:computeScore(output, sample.target, 1)
+      local top1 = self:computeScore(output, sample.target, 1)
       top1Sum = top1Sum + top1
-      top5Sum = top5Sum + top5
+      -- top5Sum = top5Sum + top5
       lossSum = lossSum + loss
       N = N + 1
 
-      print((' | Epoch: [%d][%d/%d]    Time %.3f  Data %.3f  Err %1.4f  top1 %7.3f  top5 %7.3f'):format(
-         epoch, n, trainSize, timer:time().real, dataTime, loss, top1, top5))
+      print((' | Epoch: [%d][%d/%d]    Time %.3f  Data %.3f  Err %1.4f  top1 %7.3f '):format(
+         epoch, n, trainSize, timer:time().real, dataTime, loss, top1))
 
       -- check that the storage didn't get changed do to an unfortunate getParameters call
       assert(self.params:storage() == self.model:parameters()[1]:storage())
@@ -78,7 +78,7 @@ function Trainer:train(epoch, dataloader)
       dataTimer:reset()
    end
 
-   return top1Sum / N, top5Sum / N, lossSum / N
+   return top1Sum / N, lossSum / N
 end
 
 function Trainer:test(epoch, dataloader)
@@ -89,7 +89,7 @@ function Trainer:test(epoch, dataloader)
    local size = dataloader:size()
 
    local nCrops = self.opt.tenCrop and 10 or 1
-   local top1Sum, top5Sum = 0.0, 0.0
+   local top1Sum= 0.0
    local N = 0
 
    self.model:evaluate()
@@ -102,23 +102,23 @@ function Trainer:test(epoch, dataloader)
       local output = self.model:forward(self.input):float()
       local loss = self.criterion:forward(self.model.output, self.target)
 
-      local top1, top5 = self:computeScore(output, sample.target, nCrops)
+      local top1 = self:computeScore(output, sample.target, nCrops)
       top1Sum = top1Sum + top1
-      top5Sum = top5Sum + top5
+      -- top5Sum = top5Sum + top5
       N = N + 1
 
-      print((' | Test: [%d][%d/%d]    Time %.3f  Data %.3f  top1 %7.3f (%7.3f)  top5 %7.3f (%7.3f)'):format(
-         epoch, n, size, timer:time().real, dataTime, top1, top1Sum / N, top5, top5Sum / N))
+      print((' | Test: [%d][%d/%d]    Time %.3f  Data %.3f  top1 %7.3f (%7.3f) '):format(
+         epoch, n, size, timer:time().real, dataTime, top1, top1Sum / N, ))
 
       timer:reset()
       dataTimer:reset()
    end
    self.model:training()
 
-   print((' * Finished epoch # %d     top1: %7.3f  top5: %7.3f\n'):format(
-      epoch, top1Sum / N, top5Sum / N))
+   print((' * Finished epoch # %d     top1: %7.3f \n'):format(
+      epoch, top1Sum / N))
 
-   return top1Sum / N, top5Sum / N
+   return top1Sum / N
 end
 
 function Trainer:computeScore(output, target, nCrops)
@@ -141,11 +141,11 @@ function Trainer:computeScore(output, target, nCrops)
    -- Top-1 score
    local top1 = 1.0 - (correct:narrow(2, 1, 1):sum() / batchSize)
 
-   -- Top-5 score, if there are at least 5 classes
-   local len = math.min(5, correct:size(2))
-   local top5 = 1.0 - (correct:narrow(2, 1, len):sum() / batchSize)
+   -- -- Top-5 score, if there are at least 5 classes
+   -- local len = math.min(5, correct:size(2))
+   -- local top5 = 1.0 - (correct:narrow(2, 1, len):sum() / batchSize)
 
-   return top1 * 100, top5 * 100
+   return top1 * 100
 end
 
 function Trainer:copyInputs(sample)
