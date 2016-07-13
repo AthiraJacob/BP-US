@@ -40,6 +40,62 @@ function M.Normalize(meanstd)
    end
 end
 
+function M.Zoom(prob)
+  interpolation = interpolation or 'bicubic'
+   return function(input)
+      if torch.uniform() < prob then
+               local w, h = input:size(3), input:size(2)
+               local dis = torch.uniform(0.05, 0.2)
+               local wdis = w + dis * w
+               local hdis = h + dis * h
+               input = image.scale(input, wdis, hdis, interpolation)
+               local w1 = math.ceil((input:size(3) - w)/2)
+               local h1 = math.ceil((input:size(2) - h)/2)
+               input = image.crop(input, w1, h1, w1 + w, h1 + h) 
+      end
+      return input
+   end
+end
+
+function M.HorizontalFlip(prob)
+   return function(input)
+      if torch.uniform() < prob then
+         input = image.hflip(input)
+      end
+      return input
+   end
+end
+
+function M.VerticalFlip(prob)
+   return function(input)
+      if torch.uniform() < prob then
+         input = image.vflip(input)
+      end
+      return input
+   end
+end
+
+function M.Rotation(prob)
+   return function(input)
+      if torch.uniform() < prob then
+         deg = (torch.uniform() - 0.5) * 10 * math.pi / 180
+         input = image.rotate(input, deg, 'bilinear')
+      end
+      return input
+   end
+end
+
+function M.Translation(prob)
+   return function(input)
+      if torch.uniform() < prob then
+         dist = (0.5-torch.uniform())*60,(0.5-torch.uniform())*60  
+         input = image.translate(input,dist,dist)
+      end
+      return input
+   end
+end
+
+
 -- Scales the smaller edge to size
 function M.Scale(size, interpolation)
    interpolation = interpolation or 'bicubic'
@@ -169,30 +225,6 @@ function M.RandomSizedCrop(size)
    end
 end
 
-function M.HorizontalFlip(prob)
-   return function(input)
-      if torch.uniform() < prob then
-         input = image.hflip(input)
-      end
-      return input
-   end
-end
-
-function M.Rotation(deg)
-   return function(input)
-      if deg ~= 0 then
-         input = image.rotate(input, (torch.uniform() - 0.5) * deg * math.pi / 180, 'bilinear')
-      end
-      return input
-   end
-end
-
-function M.Translation(dist)
-   return function(input)
-      input = image.translate(input,dist,dist)
-      return input
-   end
-end
 
 
 -- Lighting noise (AlexNet-style PCA-based noise)

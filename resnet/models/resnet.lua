@@ -98,7 +98,7 @@ local function createModel(opt)
    end
 
    local model = nn.Sequential()
-   if opt.dataset == 'imagenet' then
+   if opt.dataset == 'imagenet' or 'bp' or 'dr' then
       -- Configurations for ResNet:
       --  num. residual blocks, num features, residual block function
       local cfg = {
@@ -112,7 +112,7 @@ local function createModel(opt)
       assert(cfg[depth], 'Invalid depth: ' .. tostring(depth))
       local def, nFeatures, block = table.unpack(cfg[depth])
       iChannels = 64
-      print(' | ResNet-' .. depth .. ' ImageNet')
+      print(' | ResNet-' .. depth .. ' Ultrasound Blood Vessels- yes ofcourse')
 
       -- The ResNet ImageNet model
       model:add(Convolution(3,64,7,7,2,2,3,3))
