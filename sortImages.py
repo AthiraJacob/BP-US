@@ -10,11 +10,17 @@ nI = 120 #No. of images per patient
 nClasses = 2
 
 
+<<<<<<< HEAD
+fold = '/home/ubuntu/ajwahir/uts/data/data/train/train' #data folder
+destfoldtrain = '/home/ubuntu/ajwahir/uts/data/train'
+destfoldval = '/home/ubuntu/ajwahir/uts/data/val'
+=======
 
 
 fold = '/mnt/mns/train/train' #data folder
 destfoldtrain = '/mnt/mns/data/train'
 destfoldval = '/mnt/mns/data/val'
+>>>>>>> 9dc2f9182e6f665b8f3b47012357aa4b4b74ef80
 
 os.mkdir(destfoldtrain+'/Nerve')
 os.mkdir(destfoldtrain+'/Non_Nerve')

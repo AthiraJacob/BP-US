@@ -115,7 +115,7 @@ local function createModel(opt)
       print(' | ResNet-' .. depth .. ' Ultrasound Blood Vessels- yes ofcourse')
 
       -- The ResNet ImageNet model
-      model:add(Convolution(3,64,7,7,2,2,3,3))
+      model:add(Convolution(1,64,7,7,2,2,3,3))
       model:add(SBatchNorm(64))
       model:add(ReLU(true))
       model:add(Max(3,3,2,2,1,1))
@@ -126,6 +126,7 @@ local function createModel(opt)
       model:add(Avg(7, 7, 1, 1))
       model:add(nn.View(nFeatures):setNumInputDims(3))
       model:add(nn.Linear(nFeatures, 1000))
+      -- print(model)
    elseif opt.dataset == 'cifar10' then
       -- Model type specifies number of layers for CIFAR-10 model
       assert((depth - 2) % 6 == 0, 'depth should be one of 20, 32, 44, 56, 110, 1202')

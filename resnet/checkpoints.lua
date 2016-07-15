@@ -25,14 +25,14 @@ function checkpoint.latest(opt)
    return latest, optimState
 end
 
-function checkpoint.save(epoch, model, optimState, bestModel)
+function checkpoint.save(epoch, model, optimState, bestModel,testTop1)
    -- Don't save the DataParallelTable for easier loading on other machines
    if torch.type(model) == 'nn.DataParallelTable' then
       model = model:get(1)
    end
 
-   local modelFile = 'model_' .. epoch .. '.t7'
-   local optimFile = 'optimState_' .. epoch .. '.t7'
+   local modelFile = 'model_latest.t7'
+   local optimFile = 'optimState_latest.t7'
 
    torch.save(modelFile, model)
    torch.save(optimFile, optimState)
@@ -40,10 +40,15 @@ function checkpoint.save(epoch, model, optimState, bestModel)
       epoch = epoch,
       modelFile = modelFile,
       optimFile = optimFile,
+      -- testTop1 = testTop1
    })
 
    if bestModel then
       torch.save('model_best.t7', model)
+      torch.save('best.t7', {
+      epoch = epoch,
+      testTop1 = testTop1
+      })
    end
 end
 

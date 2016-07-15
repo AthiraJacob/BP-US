@@ -16,7 +16,7 @@ function M.parse(arg)
    cmd:text('Options:')
     ------------ General options --------------------
 
-   cmd:option('-data',       '/mnt/mns/data/',         'Path to dataset')
+   cmd:option('-data',       '/home/ubuntu/ajwahir/uts/sortData/',         'Path to dataset')
    cmd:option('-dataset',    'bp', 'Options: bp | imagenet | cifar10')
    cmd:option('-manualSeed', 0,          'Manually set RNG seed')
    cmd:option('-nGPU',       4,          'Number of GPUs to use by default')

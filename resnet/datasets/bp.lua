@@ -14,9 +14,27 @@ local paths = require 'paths'
 local t = require 'datasets/transforms'
 local ffi = require 'ffi'
 local cv = require 'cv'
+require 'cv.imgcodecs'
+require 'cv.imgproc'
+
 
 local M = {}
 local bpDataset = torch.class('resnet.bpDataset', M)
+
+-- Computed from random subset of bp training images
+-- histogram equalized
+local meanstd = {
+   mean = 127.5648, 
+   std = 74.8659,
+}
+local pca = {
+   eigval = torch.Tensor{ 0.2175, 0.0188, 0.0045 },
+   eigvec = torch.Tensor{
+      { -0.5675,  0.7192,  0.4009 },
+      { -0.5808, -0.0045, -0.8140 },
+      { -0.5836, -0.6948,  0.4203 },
+   },
+}
 
 function bpDataset:__init(imageInfo, opt, split)
    self.imageInfo = imageInfo[split]
@@ -33,24 +51,47 @@ function bpDataset:get(i)
    local class = self.imageInfo.imageClass[i]   
 
    image = self:_preprocess(image)
+   	
+   local newImg = torch.Tensor(1,image:size(1),image:size(2))
+   newImg[{{1}}] = image
+   -- print(newImg:size())
 
    return {
-      input = image,
+      input = newImg,
       target = class,
    }
 end
 
 function bpDataset:_preprocess( img )
    --resize?
-   new_img = cv.EqualizeHist(img) --histogram equalization
-   new_img = new_img:add(-meanstd.mean)
-   new_img = new_img:div(meanstd.std)   
+   cv.equalizeHist(img,img) --histogram equalization
+   -- print(img:size())
+   new_img = img:add(-meanstd.mean)
+   new_img = new_img:div(meanstd.std)  
+   new_img = self:resize(new_img,224)
    return new_img
 end
 
+function bpDataset:resize(img,size)
+	interpolation = interpolation or 'bicubic'
+	local w, h = img:size(2), img:size(1)
+	size = size+1
+      if w < h then
+         newImg = image.scale(img, size, h/w * size, interpolation)
+      else
+         newImg = image.scale(img, w/h * size, size, interpolation)
+     end
+     size = size-1
+     w = math.ceil((newImg:size(2) - size)/2)
+     h = math.ceil((newImg:size(1) - size)/2)
+     return image.crop(newImg, w, h, w + size, h + size)
+ end
+
+
+
 function bpDataset:_loadImage(path)
    local ok, input = pcall(function()
-      return image.load(path, 3, 'float')
+      return cv.imread{path,cv.IMREAD_GRAYSCALE}
    end)
 
    -- Sometimes image.load fails because the file extension does not match the
@@ -73,20 +114,7 @@ function bpDataset:size()
    return self.imageInfo.imageClass:size(1)
 end
 
--- Computed from random subset of bp training images
--- histogram equalized
-local meanstd = {
-   mean = 127.5648, 
-   std = 74.8659,
-}
-local pca = {
-   eigval = torch.Tensor{ 0.2175, 0.0188, 0.0045 },
-   eigvec = torch.Tensor{
-      { -0.5675,  0.7192,  0.4009 },
-      { -0.5808, -0.0045, -0.8140 },
-      { -0.5836, -0.6948,  0.4203 },
-   },
-}
+
 -- --raw images
 -- local meanstd = {
 --    mean = {  }, 
@@ -101,22 +129,9 @@ local pca = {
 --    },
 -- }
 
+
 function bpDataset:augment()
-   if self.split == 'train' then
-      -- local randNo = math.random(5)
-      -- if randNo == 1 then
-      --    return t.Compose{
-      --    t.Translation(10)}
-      -- elseif randNo == 2 then 
-      --    return t.Compose{
-      --    t.HorizontalFlip(1)}
-      -- elseif randNo == 3 then
-      --    return t.Compose{
-      --    t.Rotation(1)}
-      -- elseif randNo == 4 then
-      --    return t.Compose{
-      --    t.Rotation(-1)}
-      -- else 
+   if self.split == 'train' then 
             return t.Compose{
             t.Zoom(0.5),
             t.HorizontalFlip(0.5),

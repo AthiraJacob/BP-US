@@ -70,6 +70,7 @@ function DataLoader:run()
                local target = torch.IntTensor(sz)
                for i, idx in ipairs(indices:totable()) do
                   local sample = _G.dataset:get(idx)
+                  -- print(sample.input:size())                 
                   local input = _G.augment(sample.input)
                   if not batch then
                      imageSize = input:size():totable()

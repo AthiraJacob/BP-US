@@ -52,7 +52,7 @@ function Trainer:train(epoch, dataloader)
 
       -- Copy input and target to the GPU
       self:copyInputs(sample)
-
+      -- print(self.input:size())
       local output = self.model:forward(self.input):float()
       local loss = self.criterion:forward(self.model.output, self.target)
 
